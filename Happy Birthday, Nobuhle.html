@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Happy Birthday, Nobuhle</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbeef0;--ink:#3b1a2a;--rose:#c93a5e;--gold:#b8801f;--panel:#fffafb;--line:#ecc9d1;--c1:#a0285a;--c2:#2b7a6b;--c3:#8a5a00;--mut:#9a7a86;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b0e1f;--ink:#f6dfe3;--rose:#ef6f8c;--gold:#f2c46d;--panel:#26142b;--line:#4a2a4f;--c1:#ef6f8c;--c2:#7fd1b9;--c3:#f2c46d;--mut:#8f7596}}
+:root[data-theme="dark"]{--bg:#1b0e1f;--ink:#f6dfe3;--rose:#ef6f8c;--gold:#f2c46d;--panel:#26142b;--line:#4a2a4f;--c1:#ef6f8c;--c2:#7fd1b9;--c3:#f2c46d;--mut:#8f7596}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Cormorant Garamond",Georgia,serif;min-height:100vh;overflow-x:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+main{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:28px 18px 56px;display:flex;flex-direction:column;align-items:center;gap:22px}
+h1{font-size:clamp(2.4rem,9vw,3.6rem);font-weight:500;font-style:italic;margin:8px 0 0;text-align:center;line-height:1.05}
+h1 span{color:var(--rose)}
+.name{display:flex;gap:8px;align-items:center;font-size:1.1rem}
+.name input{font:inherit;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 12px;width:170px;text-align:center}
+.name input:focus-visible,button:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+.code{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 16px;font:400 .82rem/1.75 "JetBrains Mono",ui-monospace,Menlo,monospace;overflow-x:auto;min-height:15.5em}
+.code div{white-space:pre;opacity:0;transform:translateY(4px);transition:opacity .5s,transform .5s}
+.code div.on{opacity:1;transform:none}
+.k{color:var(--c1)}.s{color:var(--c2)}.n{color:var(--c3)}.m{color:var(--mut)}
+#stage{display:flex;flex-direction:column;align-items:center;gap:10px;opacity:0;transition:opacity 1s;text-align:center}
+#stage.on{opacity:1}
+#cake{background:none;border:0;cursor:pointer;padding:6px;color:inherit}
+.flame{transform-origin:50% 100%;animation:fl 1.1s ease-in-out infinite alternate}
+@keyframes fl{from{transform:scale(1,1) rotate(-3deg)}to{transform:scale(.9,1.12) rotate(3deg)}}
+.out .flame{display:none}
+.hint{color:var(--mut);font-size:1.05rem}
+#msg{font-size:1.5rem;font-style:italic;max-width:24ch;min-height:3.2em;color:var(--rose)}
+@media (prefers-reduced-motion:reduce){.flame{animation:none}.code div{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-hidden="true"></canvas>
+<main>
+  <h1>Happy Birthday,<br><span id="nm">Nobuhle</span></h1>
+  <section class="code" id="code" aria-label="A love letter written as code"></section>
+  <div id="stage">
+    <button id="cake" aria-label="Blow out the candle">
+      <svg width="150" height="150" viewBox="0 0 150 150" aria-hidden="true">
+        <g class="flame"><path d="M75 18c9 12 11 20 0 30-11-10-9-18 0-30z" fill="#f2a93d"/><path d="M75 29c4 6 5 10 0 15-5-5-4-9 0-15z" fill="#ffe08a"/></g>
+        <rect x="72" y="46" width="6" height="26" rx="2" fill="#f6dfe3"/>
+        <rect x="30" y="72" width="90" height="26" rx="8" fill="#ef6f8c"/>
+        <path d="M30 84c10 8 14-6 24 2s14-6 24 2 14-6 24 2 10 2 18-2v14a8 8 0 0 1-8 8H38a8 8 0 0 1-8-8z" fill="#fbeef0"/>
+        <rect x="22" y="104" width="106" height="28" rx="9" fill="#a0285a"/>
+        <circle cx="45" cy="118" r="3.5" fill="#f2c46d"/><circle cx="75" cy="118" r="3.5" fill="#f2c46d"/><circle cx="105" cy="118" r="3.5" fill="#f2c46d"/>
+      </svg>
+    </button>
+    <div class="hint" id="hint">Make a wish, then tap the candle.</div>
+    <div id="msg" aria-live="polite"></div>
+  </div>
+</main>
+<script>
+(function(){
+  var nm=document.getElementById('nm'),code=document.getElementById('code'),NAME='Nobuhle';
+  var stage=document.getElementById('stage'),cake=document.getElementById('cake'),msg=document.getElementById('msg'),hint=document.getElementById('hint');
+  var timers=[];
+  function esc(t){return t.replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+  function lines(n){
+    n=esc(n||'my love');
+    return [
+      '<span class="m">// written just for you</span>',
+      '<span class="k">const</span> you = <span class="k">new</span> Love(<span class="s">"'+n+'"</span>);',
+      '',
+      '<span class="k">function</span> birthday(you) {',
+      '  <span class="k">for</span> (<span class="k">let</span> day = <span class="n">0</span>; ; day++) {',
+      '    you.age += <span class="n">1</span>;',
+      '    me.heart.beat(you);   <span class="m">// every single day</span>',
+      '    <span class="k">if</span> (you.smile) world.<span class="s">brighten</span>();',
+      '  }',
+      '}',
+      '',
+      'birthday(you);  <span class="m">// runs forever</span>'
+    ];
+  }
+  function play(){
+    timers.forEach(clearTimeout);timers=[];
+    stage.classList.remove('on');stage.classList.remove('out');
+    document.getElementById('cake').parentNode.classList.remove('out');
+    msg.textContent='';hint.textContent='Make a wish, then tap the candle.';
+    code.innerHTML='';
+    var L=lines(NAME);
+    L.forEach(function(h,i){
+      var d=document.createElement('div');d.innerHTML=h||' ';code.appendChild(d);
+      timers.push(setTimeout(function(){d.classList.add('on')},350+i*420));
+    });
+    timers.push(setTimeout(function(){stage.classList.add('on')},350+L.length*420+300));
+  }
+
+  /* hearts */
+  var cv=document.getElementById('cv'),cx=cv.getContext('2d'),hs=[],W,H,dpr=Math.min(window.devicePixelRatio||1,2);
+  function size(){W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0)}
+  size();addEventListener('resize',size);
+  var cols=['#ef6f8c','#c93a5e','#f2c46d','#f6a6b8'];
+  function heart(x,y,s,c,a){cx.save();cx.translate(x,y);cx.scale(s,s);cx.globalAlpha=a;cx.fillStyle=c;cx.beginPath();
+    cx.moveTo(0,3);cx.bezierCurveTo(-6,-3,-12,3,0,12);cx.bezierCurveTo(12,3,6,-3,0,3);cx.fill();cx.restore()}
+  function spawn(x,y,vx,vy,s){hs.push({x:x,y:y,vx:vx,vy:vy,s:s,c:cols[Math.random()*cols.length|0],a:.9,ph:Math.random()*6})}
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function tick(){
+    cx.clearRect(0,0,W,H);
+    if(!reduce&&Math.random()<.04)spawn(Math.random()*W,H+20,0,-(.4+Math.random()*.6),.5+Math.random()*.7);
+    hs=hs.filter(function(h){return h.y>-30&&h.a>.02});
+    hs.forEach(function(h){h.ph+=.03;h.x+=h.vx+Math.sin(h.ph)*.3;h.y+=h.vy;if(h.burst){h.vy+=.02;h.a-=.008}
+      heart(h.x,h.y,h.s,h.c,Math.max(h.a,0)*(h.burst?1:.35))});
+    requestAnimationFrame(tick);
+  }
+  tick();
+
+  function burst(){
+    var r=cake.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+30;
+    for(var i=0;i<70;i++){var a=Math.random()*6.283,v=1.5+Math.random()*4.5;
+      spawn(x,y,Math.cos(a)*v,Math.sin(a)*v-2,.7+Math.random()*1.2);hs[hs.length-1].burst=true}
+  }
+  cake.addEventListener('click',function(){
+    if(stage.classList.contains('out'))return;
+    stage.classList.add('out');cake.classList.add('out');
+    hint.textContent='';burst();setTimeout(burst,350);
+    msg.textContent='May every wish come true, '+NAME+'. I love you.';
+  });
+  play();
+})();
+</script>
+</body>
+</html>
